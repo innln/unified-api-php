@@ -1,10 +1,10 @@
-<?php declare(strict_type=1)
+<?php declare(strict_types=1);
 
-namespace innln\unifiedapiphp;
+namespace innln\unifiedapi;
 
 /**
  * 统一接口调用库容器
- * @package innln\unifiedppiphp
+ * @package innln\unifiedapi
  */
 class Container extends \League\Container\Container
 {
