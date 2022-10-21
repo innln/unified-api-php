@@ -1,2 +1,12 @@
 /vendor/
 .idea/
+.git/
+/.DS_Store
+/.buildpath
+.DS_Store
+composer.lock
+/.vscode
+.vscode
+.env*
+.htaccess
+nginx.htaccess
