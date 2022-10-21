@@ -15,9 +15,10 @@
     ],
     "require": {
         "guzzlehttp/guzzle": "6.5.8",
-        "monolog/monolog": "2.5.0"
+        "monolog/monolog": "2.5.0",
+        "league/container": "4.2.0"
     },
     "require-dev": {
-        "codeception/codeception": "4.2.3.beta4"
+        "codeception/codeception": "4.2.3-beta4"
     }
 }
