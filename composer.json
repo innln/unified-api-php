@@ -1,0 +1,22 @@
+{
+    "name": "innln/unified-api-php",
+    "description": "Uniformly call third-party interfaces",
+    "type": "library",
+    "autoload": {
+        "psr-4": {
+            "innln\\unifiedapiphp\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "zhonganping",
+            "email": "mysticzap@qq.com"
+        }
+    ],
+    "require": {
+        "guzzlehttp/guzzle": "6.5.8"
+    },
+    "require-dev": {
+        "codeception/codeception": "4.2.3.beta4"
+    }
+}
