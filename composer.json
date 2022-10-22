@@ -22,5 +22,15 @@
     },
     "require-dev": {
         "codeception/codeception": "4.2.3-beta4"
+    },
+    "repositories": {
+        "aliyun": {
+            "type": "composer",
+            "url": "https://mirrors.aliyun.com/composer/"
+        },
+        "packagist": {
+            "type": "composer",
+            "url": "https://repo.packagist.org"
+        }
     }
 }
