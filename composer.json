@@ -18,10 +18,13 @@
         "php": ">=7.1",
         "guzzlehttp/guzzle": "6.5.8",
         "monolog/monolog": "2.5.0",
-        "league/container": "4.2.0"
+        "league/container": "4.2.0",
+        "symfony/config": "v5.4.11"
     },
     "require-dev": {
-        "codeception/codeception": "4.2.3-beta4"
+        "codeception/codeception": "4.2.3-beta4",
+        "codeception/module-phpbrowser": "^1.0.0",
+        "codeception/module-asserts": "^1.0.0"
     },
     "repositories": {
         "aliyun": {
