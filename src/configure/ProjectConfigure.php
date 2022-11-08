@@ -17,32 +17,32 @@ class ProjectConfigure extends BaseObject implements ProjectConfigureInterface
     /**
      * @var Container
      */
-    private $container;
+    protected $container;
     /**
      * @var string 接口域名， 带scheme
      * @example https://api.innln.com
      * 接口的前缀为：$this->baseUri . $this->version
      */
-    private $baseUri;
+    protected $baseUri;
     /**
      * @var string 版本
      * @example v2
      */
-    private $version;
+    protected $version;
     /**
      * @var int 查询失败默认最大重试次数
      */
-    private $defaultMaxRetryCount;
+    protected $defaultMaxRetryCount;
 
     /**
      * @var int 重试间隔时间，单位：毫秒
      */
-    private $defaultRetryInterval;
+    protected $defaultRetryInterval;
 
     /**
      * @var AuthenticationConfigure
      */
-    private $authentication;
+    protected $authentication;
     /**
      * @var string 失败返回的状态，多个以“|”,如：200|201|202，范围以“-”，如：200-299
      * @example ![200-299]|300|400
@@ -53,14 +53,14 @@ class ProjectConfigure extends BaseObject implements ProjectConfigureInterface
      * 400, 指定值
      *
      */
-    private $failureHttpStatusCode;
+    protected $failureHttpStatusCode;
 
     /**
      * 接口配置数据
      * key为接口唯一名，以便获取指定接口数据
      * @var array
      */
-    private $apis = [];
+    protected $apis = [];
 
     /**
      * ProjectConfigure constructor.
@@ -98,7 +98,7 @@ class ProjectConfigure extends BaseObject implements ProjectConfigureInterface
     /**
      * 判断返回的http状态吗是否是错误码范围
      * @param int $httpStatusCode http状态码
-     * @param string $apiHttpStatus api接口上的状态码配置规则
+     * @param string $apiHttpStatus api接口上的状态码配置规则，规则填写时，必须每项都要保存互斥， 尽量少用“非”操作
      * @param string $projectHttpStatus  项目上配置的成功，或失败的状态码匹配规则数据
      * @return bool
      */
@@ -108,7 +108,6 @@ class ProjectConfigure extends BaseObject implements ProjectConfigureInterface
         if(empty($sPregStatusCodes)){
             throw new ApiHttpException(ErrorCode::ERROR_HTTP_STATUS_RULE_CONFIGURE_IS_NOT_CONFIG);
         }
-        $result = false;
         // ![200-299] | [400-420] | 500 | !501
         $pregScope = "/\!?\[(\d*)\-(\d*)\]/"; // 范围匹配， 如：![200-299] 或 [200-299]
         $failureHttpStatusCodes = explode("|",$sPregStatusCodes);
@@ -120,33 +119,45 @@ class ProjectConfigure extends BaseObject implements ProjectConfigureInterface
                 'notInScope' => [] // 不包含范围
             ];
             foreach($failureHttpStatusCodes as $statusCodeConfig){
+                $this->container->get("logger")->debug("状态码匹配规则切割成项：{$statusCodeConfig}, 判断匹配 !："  . ('!' === substr($statusCodeConfig, 0,1)?"EXIST":"NOT EXIST"));
                 // 是否匹配范围格式数据
-                if(0 === stripos('!', $statusCodeConfig)){
+                if('!' === substr($statusCodeConfig, 0,1)){
                     $statusCodeConfigRemoveNon = substr($statusCodeConfig, 1);
                     if(is_numeric($statusCodeConfigRemoveNon)){
-                        $statusCodes['notIn'][] = $statusCodeConfigRemoveNon == $httpStatusCode;
+                        $statusCodes['notIn'][] = ($statusCodeConfigRemoveNon == $httpStatusCode);
                     } elseif (preg_match($pregScope, $statusCodeConfig, $matches)) {
-                        $statusCodes['notInScope'] = $matches[1] <= $httpStatusCode && $httpStatusCode <= $matches[2];
+                        $statusCodes['notInScope'][] = $matches[1] <= $httpStatusCode && $httpStatusCode <= $matches[2];
                     }
                 } else {
                     // 包含，匹配上了，直接返回结果
                     if(is_numeric($statusCodeConfig)){
-                        if($statusCodeConfig == $httpStatusCode){
-                            $result = true;
-                            break;
-                        }
+                        $statusCodes['in'][] = $statusCodeConfig == $httpStatusCode;
+//                        if($statusCodeConfig == $httpStatusCode){
+//                            $result = true;
+//                            break;
+//                        }
                     } elseif(preg_match($pregScope, $statusCodeConfig, $matches)) {
-                        if($matches[1] <= $httpStatusCode && $httpStatusCode <= $matches[2]){
-                            $result = true;
-                            break;
-                        }
+                        $statusCodes['inScope'][] = $matches[1] <= $httpStatusCode && $httpStatusCode <= $matches[2];
+//                        if($matches[1] <= $httpStatusCode && $httpStatusCode <= $matches[2]){
+//                            $result = true;
+//                            break;
+//                        }
                     }
                 }
             }
-            // 是否在不允许范围内，只要有一个成立，则条件就成立
-            $notIn = !empty($statusCodes['notIn'] && array_sum($statusCodes['notIn']));
-            $notInScope = !empty($statusCodes['notInScope'] && array_sum($statusCodes['notInScope']));
-            return $result || (!$result && !($notIn || $notInScope));
+            $this->container->get("logger")->debug("状态码匹配结果", $statusCodes);
+            // 在是或运算, 只要存在一个，则为真
+            $in = !empty($statusCodes['in']) && (array_sum($statusCodes['in']));
+            // 只要存在一个，则为真
+            $inScope = !empty($statusCodes['inScope']) && (array_sum($statusCodes['inScope']));
+            // 判断不应该在这个外围内，但是在的则只要有一个true就是错的
+            // 只要存在一个在这个返回内，则为假
+            $notIn = !empty($statusCodes['notIn']) && array_sum($statusCodes['notIn']);
+            // 只要存在一个在这个返回内，则为假
+            $notInScope = !empty($statusCodes['notInScope']) && array_sum($statusCodes['notInScope']);
+//            return $result || (!$result && !($notIn && $notInScope));
+            $this->container->get("logger")->debug("四种结果集", ['in' =>$in ,'notIn' =>$notIn, 'inScope' => $inScope, 'noInScope' =>$notInScope,'result' => ($in || $inScope) && ($notIn && $notInScope)]);
+            return $in || $inScope || !($notIn || $notInScope);
         }
     }
 
