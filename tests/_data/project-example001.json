@@ -48,13 +48,13 @@
   },
   "apis":{
     "users":{
-      "name":"",
-      "api":"user",
+      "name":"用户列表",
+      "api":"users",
       "method": "GET",
       "requestType":"json",
       "responseType":"json",
       "maxRetryCount":3,
-      "retryInterval":"1000",
+      "retryInterval":1000,
       "request":{
         "name":{
           "name":"name",
@@ -75,7 +75,6 @@
           "nullable":false,
           "isAbandon":false,
           "default":[],
-          "#nesting":"直接是User的属性信息",
           "nesting":{
             "lastName":{
               "type":"string",

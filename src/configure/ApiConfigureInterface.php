@@ -4,6 +4,9 @@
 namespace innln\unifiedapi\configure;
 
 
+use Psr\Http\Message\RequestInterface;
+use Psr\Http\Message\ResponseInterface;
+
 interface ApiConfigureInterface
 {
     /**
@@ -30,4 +33,15 @@ interface ApiConfigureInterface
     public function hasFailureHttpStatusCode():bool;
 
     public function hasFailureResponse():bool;
+
+    /**
+     * Send an HTTP request.
+     *
+     * @param array $options Request options to apply to the given
+     *                       request and to the transfer. See \GuzzleHttp\RequestOptions.
+     *
+     * @return ResponseInterface
+     * @throws GuzzleException
+     */
+    public function send(RequestInterface $request, array $options = []);
 }

@@ -1,22 +1,36 @@
 <?php
 
+use innln\unifiedapi\configure\ApiConfigure;
 use innln\unifiedapi\configure\ProjectConfigure;
 use innln\unifiedapi\Container;
 use Monolog\Logger;
 use Monolog\Handler\StreamHandler;
 
+/**
+ * Class FirstCest
+ *
+ */
 class FirstCest
 {
+    private $unifiedApi;
     /**
      * @var ProjectConfigure
      */
     private $projectConfigure;
+    /**
+     * @var Container
+     */
+    private $container;
+    /**
+     * @var array 项目配置文件信息
+     */
+    private $projectConfig = [];
 
     public function _before(UnitTester $I)
     {
 
         $oContainer = new Container();
-        $channel = "debug";
+        $channel = "debug";// 日志记录的文件
 //        $logger = new Logger("debug");
         //$logger->pushHandler();
         $currentTestFoldRoot = dirname(__DIR__);
@@ -25,6 +39,9 @@ class FirstCest
         // 日志类加入到容器里面
         $oContainer->addShared("logger", Logger::class)->addArgument($channel)
             ->addMethodCall("pushHandler", [new StreamHandler($file, Logger::DEBUG)]);
+        // http客户端
+        $oContainer->addShared(\GuzzleHttp\Client::class);
+        $this->container = $oContainer;
         // 从容器内获得日志类，调用日志类函数记录日志
 //        $oContainer->get("logger")->warning("get logger from container ", ['params']);
 
@@ -37,12 +54,14 @@ class FirstCest
         $jsonDatabaseFile = $oLocator->locate('project-example001.json', null, false);
         $sProjectConfigure = file_get_contents(array_pop($jsonDatabaseFile));
         // json数据数组化
-        $aProjectConfigure = json_decode($sProjectConfigure, true);
+        $this->projectConfig = $aProjectConfigure = json_decode($sProjectConfigure, true);
+        $oContainer->get("logger")->debug('项目配置数据', $aProjectConfigure);
         $this->projectConfigure = new ProjectConfigure($oContainer, $aProjectConfigure);
+        $this->unifiedApi = new \innln\unifiedapi\UnifiedApi($oContainer, $this->projectConfigure);
     }
 
     // tests
-    public function tryToTest(UnitTester $I)
+    public function validateHttpStatusCodeTest(UnitTester $I)
     {
         $testConfig = [
             ['httpStatusCode' => 200, 'apiHttpStatus' => '![200-299]|[400-499]|300', 'result' => false],
@@ -54,5 +73,16 @@ class FirstCest
             $I->assertSame($config['result'], $this->projectConfigure->validateHttpStatusCode($config['httpStatusCode'], $config['apiHttpStatus']),
                 "{$config['httpStatusCode']}符合{$config['apiHttpStatus']}预期判断{$config['result']}");
         }
+    }
+
+    /**
+     * @param UnitTester $I
+     */
+    public function hasTest(UnitTester $I){
+        $apiKey = 'users';
+        $api = $this->projectConfigure->getApi($apiKey);
+        $this->container->get("logger")->debug($api);
+        $I->assertSame($apiKey, $api->getApi(), "不存在指定{$apiKey}接口");
+        $I->assertTrue($this->projectConfigure->hasApi($apiKey), "不存在{$apiKey}接口");
     }
 }

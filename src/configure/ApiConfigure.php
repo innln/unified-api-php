@@ -3,8 +3,11 @@
 
 namespace innln\unifiedapi\configure;
 
+use GuzzleHttp\Client;
 use innln\unifiedapi\BaseObject;
 use innln\unifiedapi\Container;
+use Psr\Http\Message\RequestInterface;
+use Psr\Http\Message\ResponseInterface;
 
 /**
  * 接口配置类
@@ -15,47 +18,51 @@ class ApiConfigure extends BaseObject implements ApiConfigureInterface
     /**
      * @var Container
      */
-    private $container;
+    protected $container;
     /**
      * @var string 接口名称-中文名
      */
-    private $name;
+    protected $name;
+    /**
+     * @var string 接口名
+     */
+    protected $api;
     /**
      * @var string 接口地址，完整地址：baseUri+/+version+/+uri
      */
-    private $uri;
+    protected $uri;
     /**
      * @var string 请求方式，可选值：GET|POST|PUT|DELETE|PATCH
      */
-    private $method;
+    protected $method;
     /**
      * @var string 请求类型，form_params，multipart，json
      */
-    private $requestType;
+    protected $requestType;
     /**
      * @var string 返回数据类型 ，url, stream, xml，text，json
      */
-    private $responseType;
+    protected $responseType;
     /**
      * @var int 接口失败最大重试次数
      */
-    private $maxRetryCount;
+    protected $maxRetryCount;
     /**
      * @var int 重试间隔时长，单位：毫秒
      */
-    private $retryInterval;
+    protected $retryInterval;
     /**
      * @var array 请求参数格式配置
      */
-    private $request = [];
+    protected $request = [];
     /**
      * @var string 成功返回的状态，多个以“|”,如：200|201|202，范围以“-”，如：200-299
      */
-    private $httpStatusCode;
+    protected $httpStatusCode;
     /**
      * @var array 返回的数据格式配置
      */
-    private $response = [];
+    protected $response = [];
     /**
      * @var string 失败返回的状态匹配规则，多个以“|”,如：200|201|202，范围以“-”，如：200-299
      * @example ![200-299]|300|400
@@ -66,11 +73,11 @@ class ApiConfigure extends BaseObject implements ApiConfigureInterface
      * 400, 指定值
      *
      */
-    private $failureHttpStatusCode;
+    protected $failureHttpStatusCode;
     /**
      * @var array 返回失败的数据格式
      */
-    private $failureResponse;
+    protected $failureResponse;
 
     /**
      * ApiConfigure constructor.
@@ -114,6 +121,84 @@ class ApiConfigure extends BaseObject implements ApiConfigureInterface
     {
         // TODO: Implement hasFailureResponse() method.
         return !empty($this->failureResponse);
+    }
+
+    /**
+     * Send an HTTP request.
+     *
+     * @param array $options Request options to apply to the given
+     *                       request and to the transfer. See \GuzzleHttp\RequestOptions.
+     *
+     * @return ResponseInterface
+     * @throws GuzzleException
+     */
+    public function send(RequestInterface $request, array $options = []){
+        return $this->container->get(Client::class)->send($request, $options);
+    }
+
+    /**
+     * 接口中文名
+     * @return string
+     */
+    public function getName(){
+        return $this->name;
+    }
+
+    /**
+     * 接口名（唯一）
+     * @return mixed
+     */
+    public function getApi(){
+        return $this->api;
+    }
+
+    /**
+     * @return string
+     */
+    public function getRequestType(){
+        return $this->requestType;
+    }
+
+    /**
+     * @return string
+     */
+    public function getResponseType(){
+        return $this->responseType;
+    }
+
+    /**
+     * @return int
+     */
+    public function getMaxRetryCount(){
+        return $this->maxRetryCount;
+    }
+
+    /**
+     * @return int
+     */
+    public function getRetryInterval(){
+        return $this->retryInterval;
+    }
+
+    /**
+     * @return array
+     */
+    public function getRequest(){
+        return $this->request;
+    }
+
+    /**
+     * @return string
+     */
+    public function getHttpStatusCode(){
+        return $this->httpStatusCode;
+    }
+
+    /**
+     * @return array
+     */
+    public function getResponse(){
+        return $this->response;
     }
 
 }

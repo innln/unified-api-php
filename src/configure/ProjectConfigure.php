@@ -175,7 +175,7 @@ class ProjectConfigure extends BaseObject implements ProjectConfigureInterface
     /**
      * 返回接口配置对象
      * @param string $apiKey
-     * @return ApiConfigure
+     * @return ApiConfigure|array
      * @throws ApiClassObjectNotFoundException
      */
     public function getApi(string $apiKey): ApiConfigure
@@ -184,7 +184,8 @@ class ProjectConfigure extends BaseObject implements ProjectConfigureInterface
         if(!$this->hasApi($apiKey)){
             throw new ApiClassObjectNotFoundException(ErrorCode::ERROR_CLASS_OBJECT_IS_NOT_EXIST, [ApiConfigure::class]);
         }
+        $this->container->get("logger")->debug('接口配置数据', $this->apis);
         return ($this->apis[$apiKey] instanceof ApiConfigure) ?
-            new ApiConfigure($this->container, $this->apis[$apiKey]) : $this->apis[$apiKey];
+             $this->apis[$apiKey] : new ApiConfigure($this->container, $this->apis[$apiKey]);
     }
 }

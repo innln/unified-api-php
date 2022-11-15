@@ -82,4 +82,11 @@ class UnifiedApi extends  BaseObject implements UnifiedApiInterface
             throw $e;
         }
     }
+
+    /**
+     * @return ProjectConfigure
+     */
+    public function getProjectConfigure(){
+        return $this->projectConfigure;
+    }
 }
